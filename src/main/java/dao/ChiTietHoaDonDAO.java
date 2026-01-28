@@ -8,6 +8,10 @@ import java.util.List;
 
 public class ChiTietHoaDonDAO {
 
+    // Counter để tạo mã unique trong 1 phiên
+    private static int counter = 0;
+    private static String lastGeneratedBase = "";
+
     // ===== 1. THÊM CHI TIẾT HÓA ĐƠN =====
     public boolean them(ChiTietHoaDon chiTiet) {
         String sql = "INSERT INTO chitiethoadon (MaCTHD, MaHD, LoaiChiTiet, MoTa, " +
@@ -379,25 +383,63 @@ public class ChiTietHoaDonDAO {
         return false;
     }
 
-    // ===== 17. TẠO MÃ CHI TIẾT TỰ ĐỘNG =====
-    public String taoMaChiTietTuDong() {
+    // ===== 17. TẠO MÃ CHI TIẾT TỰ ĐỘNG - SỬA DÙNG SYNCHRONIZED COUNTER =====
+    public synchronized String taoMaChiTietTuDong() {
         String sql = "SELECT MaCTHD FROM chitiethoadon ORDER BY MaCTHD DESC LIMIT 1";
 
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
+            int soThuTu = 1; // Mặc định
+
             if (rs.next()) {
                 String maCuoi = rs.getString("MaCTHD");
-                int soThuTu = Integer.parseInt(maCuoi.substring(4)) + 1;
-                return String.format("CTHD%03d", soThuTu);
-            } else {
-                return "CTHD001";
+
+                if (maCuoi != null && !maCuoi.isEmpty()) {
+                    // Loại bỏ tất cả ký tự không phải số
+                    String soPhan = maCuoi.replaceAll("[^0-9]", "");
+
+                    if (!soPhan.isEmpty()) {
+                        try {
+                            // Chỉ lấy 3 chữ số cuối để tránh overflow
+                            if (soPhan.length() > 3) {
+                                soThuTu = Integer.parseInt(soPhan.substring(soPhan.length() - 3)) + 1;
+                            } else {
+                                soThuTu = Integer.parseInt(soPhan) + 1;
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Lỗi parse mã: " + maCuoi);
+                            soThuTu = 1;
+                        }
+                    }
+                }
             }
+
+            // Tạo base code
+            String baseCode = String.format("CTHD%03d", soThuTu);
+
+            // Nếu trùng với lần tạo trước, tăng counter
+            if (baseCode.equals(lastGeneratedBase)) {
+                counter++;
+                // Nếu vượt quá 999, reset về 1
+                if (soThuTu + counter > 999) {
+                    counter = 0;
+                    soThuTu = 1;
+                }
+                baseCode = String.format("CTHD%03d", soThuTu + counter);
+            } else {
+                // Mã mới, reset counter
+                counter = 0;
+                lastGeneratedBase = baseCode;
+            }
+
+            return baseCode;
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return "CTHD001";
+            // Fallback: dùng timestamp
+            return "CTHD" + (System.currentTimeMillis() % 1000);
         }
     }
 
