@@ -303,7 +303,7 @@ public class LichSuNapTienDAO {
         return result;
     }
 
-    // ===== 14. TẠO MÃ NẠP TỰ ĐỘNG - ĐÃ SỬA LỖI =====
+    // ===== 14. TẠO MÃ NẠP TỰ ĐỘNG - ĐÃ SỬA THÀNH FORMAT NAP =====
     public String taoMaNapTuDong() {
         String sql = "SELECT MaNap FROM lichsunaptien ORDER BY MaNap DESC LIMIT 1";
 
@@ -316,30 +316,30 @@ public class LichSuNapTienDAO {
 
                 // Kiểm tra và xử lý các format khác nhau
                 if (maCuoi == null || maCuoi.isEmpty()) {
-                    return "NT001";
+                    return "NAP001";  // ← SỬA: NAP thay vì NT
                 }
 
                 // Loại bỏ tất cả ký tự không phải số
                 String soPhan = maCuoi.replaceAll("[^0-9]", "");
 
                 if (soPhan.isEmpty()) {
-                    return "NT001";
+                    return "NAP001";  // ← SỬA: NAP thay vì NT
                 }
 
                 try {
                     int soThuTu = Integer.parseInt(soPhan) + 1;
-                    return String.format("NT%03d", soThuTu);
+                    return String.format("NAP%03d", soThuTu);  // ← SỬA: NAP thay vì NT
                 } catch (NumberFormatException e) {
                     System.out.println("Lỗi parse mã: " + maCuoi + " -> " + soPhan);
-                    return "NT001";
+                    return "NAP001";  // ← SỬA: NAP thay vì NT
                 }
             } else {
-                return "NT001";
+                return "NAP001";  // ← SỬA: NAP thay vì NT
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return "NT001";
+            return "NAP001";  // ← SỬA: NAP thay vì NT
         }
     }
 
