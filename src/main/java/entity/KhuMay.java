@@ -62,7 +62,7 @@ public class KhuMay {
         String sql = "SELECT MaKH FROM khachhang ORDER BY MaKH DESC LIMIT 1";
 
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dao.DBConnection.getConnection();
                 Statement st = conn.createStatement();
                 ResultSet rs = st.executeQuery(sql)
         ) {
@@ -77,5 +77,4 @@ public class KhuMay {
 
         return "MAY001";  // Nếu chưa có dữ liệu
     }
-}
 }

@@ -66,25 +66,25 @@ public class TestKhachHangDAO {
 //        }
 
         // 5. Test chức năng SOFT DELETE (Xóa tạm)
+// 5. Test chức năng SOFT DELETE (Xóa tạm)
         try {
             System.out.println("\n--- Test Xóa khách hàng ---");
-            // Thay "KH001" bằng một mã khách hàng đang có trong DB của bạn
-            String maDelele = "KH016";
+
+            // SỬA DÒNG NÀY: Đổi KH016 thành KH015 (hoặc KH014)
+            String maDelele = "KH015";
 
             // Xem cảnh báo trước khi xóa
             String warning = dao.getDeleteWarning(maDelele);
-            if(warning != null) {
+            if (warning != null) {
                 System.out.println("Cảnh báo trước khi xóa: " + warning);
             }
 
             boolean isDeleted = dao.delete(maDelele);
             if (isDeleted) {
-                System.out.println("=> Thành công: Đã chuyển trạng thái khách hàng sang NGUNG.");
+                System.out.println("=> Thành công: Đã chuyển trạng thái khách hàng " + maDelele + " sang NGUNG.");
             }
         } catch (RuntimeException e) {
             System.err.println("=> Lỗi Delete: " + e.getMessage());
         }
-
-        System.out.println("\n--- KẾT THÚC TEST ---");
     }
 }
