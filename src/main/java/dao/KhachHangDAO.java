@@ -364,64 +364,62 @@ public class KhachHangDAO {
 
     }
 
-    public boolean isTenDangNhapExists(String tendangnhap){
-
-        if(tendangnhap == null || tendangnhap.trim().isEmpty()){
-            return  false;
+    public boolean isTenDangNhapExists(String tendangnhap) {
+        if (tendangnhap == null || tendangnhap.trim().isEmpty()) {
+            return false;
         }
-
 
         String sql = "SELECT COUNT(*) FROM khachhang WHERE TenDangNhap = ?";
+        boolean exists = false; // Biến trung gian để lưu kết quả
 
-
-        try{
+        try {
             Connection conn = DBConnection.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql);
 
-            pstmt.setString(1,tendangnhap);
-
+            pstmt.setString(1, tendangnhap);
             ResultSet rs = pstmt.executeQuery();
 
-            conn.close();
-            pstmt.close();
-
-            if(rs.next()){
-                return rs.getInt(1) > 0;
+            // 1. ĐỌC DỮ LIỆU TRƯỚC
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
             }
 
+            // 2. SAU ĐÓ MỚI ĐÓNG KẾT NỐI
+            rs.close();
+            pstmt.close();
+            conn.close();
 
-        }catch (SQLException e){
-            throw  new RuntimeException("Lỗi isTenDangNhapExists KhachHang " + e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi isTenDangNhapExists KhachHang " + e.getMessage());
         }
 
-        return false;
+        return exists; // Trả về kết quả đã lấy được
     }
 
-    private  boolean hasActiveSession (String MaKH ){
+    private boolean hasActiveSession(String MaKH) {
         String sql = "SELECT COUNT(*) FROM phiensudung WHERE MaKH = ? AND TrangThai = 'DANGCHOI'";
-        try{
+        boolean hasSession = false; // Biến lưu kết quả
+
+        try {
             Connection conn = DBConnection.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql);
-
-            pstmt.setString(1,MaKH);
-
+            pstmt.setString(1, MaKH);
             ResultSet rs = pstmt.executeQuery();
 
-
-
-            conn.close();
-            pstmt.close();
-
-
-            if(rs.next()){
-                return rs.getInt(1) > 0 ;
+            // 1. ĐỌC DỮ LIỆU TRƯỚC
+            if (rs.next()) {
+                hasSession = rs.getInt(1) > 0;
             }
 
-        }catch (SQLException e){
-            throw new RuntimeException("Lỗi hasActiveSession KhachHang " + e.getMessage());
+            // 2. SAU ĐÓ MỚI ĐÓNG KẾT NỐI
+            rs.close();
+            pstmt.close();
+            conn.close();
 
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi hasActiveSession KhachHang " + e.getMessage());
         }
-        return  false;
+        return hasSession;
     }
     //Tìm khách hàng theo Id
     private KhachHang getById(String MaKH){
