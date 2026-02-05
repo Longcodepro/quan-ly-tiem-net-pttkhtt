@@ -12,7 +12,7 @@ import untils.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestDichVuBus {
+public class TestDichVuBUS {
     public static void main(String[] args){
         DichVuBUS dv = new DichVuBUS();
         DichVuDAO dvDAO = new DichVuDAO();
@@ -85,5 +85,6 @@ public class TestDichVuBus {
 //        }catch(Exception e){
 //            System.err.println("Có lỗi: " + e.getMessage());
 //        }
+
     }
 }
