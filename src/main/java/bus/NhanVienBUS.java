@@ -2,6 +2,7 @@ package bus;
 
 import dao.NhanVienDAO;
 import entity.NhanVien;
+import untils.PasswordEncoder;
 import untils.PermissionHelper;
 import untils.SessionManager;
 
@@ -14,55 +15,96 @@ public class NhanVienBUS {
         this.nhanVienDAO = new NhanVienDAO();
     }
 
-    /**
-     * Xử lý đăng nhập nhân viên
-     */
+    // ================== 7.2 ĐĂNG NHẬP & TÀI KHOẢN ==================
+
     public NhanVien dangNhap(String tenDangNhap, String matKhau) throws Exception {
-        try {
-            NhanVien nv = nhanVienDAO.login(tenDangNhap, matKhau);
-            if (nv == null) {
-                throw new Exception("Tên đăng nhập hoặc mật khẩu không chính xác!");
-            }
-            // Lưu session
-            SessionManager.setCurrentUser(nv);
-            return nv;
-        } catch (RuntimeException e) {
-            throw new Exception(e.getMessage());
+        // Kiểm tra dữ liệu đầu vào
+        if (tenDangNhap == null || tenDangNhap.trim().isEmpty()) {
+            throw new Exception("Chưa nhập tên đăng nhập!");
         }
+        if (matKhau == null || matKhau.trim().isEmpty()) {
+            throw new Exception("Chưa nhập mật khẩu!");
+        }
+
+        // Lấy thông tin nhân viên từ DB
+        NhanVien nv = nhanVienDAO.getByTenDangNhap(tenDangNhap);
+
+        // Kiểm tra tồn tại
+        if (nv == null) {
+            throw new Exception("Tên đăng nhập không chính xác!");
+        }
+
+        // So sánh mật khẩu (đã mã hóa)
+        if (!PasswordEncoder.matches(matKhau, nv.getMatkhau())) {
+            throw new Exception("Mật khẩu không chính xác!");
+        }
+
+        // Kiểm tra trạng thái làm việc
+        if (nv.isNghiViec()) {
+            throw new Exception("Nhân viên đã nghỉ việc, không thể đăng nhập!");
+        }
+
+        // Lưu thông tin vào phiên làm việc
+        SessionManager.setCurrentUser(nv);
+        return nv;
     }
 
-    /**
-     * Đăng xuất
-     */
-    public void dangXuat() {
-        SessionManager.logout();
+    public boolean doiMatKhau(String maNV, String mkCu, String mkMoi) throws Exception {
+        // Kiểm tra quyền (Chính chủ hoặc Quản lý)
+        PermissionHelper.canEditNhanVien(maNV);
+
+        if (mkMoi == null || mkMoi.length() < 6) {
+            throw new Exception("Mật khẩu mới phải từ 6 ký tự!");
+        }
+
+        NhanVien nv = nhanVienDAO.getById(maNV);
+        if (nv == null) throw new Exception("Nhân viên không tồn tại!");
+
+        // Nếu là tự đổi mật khẩu thì phải nhập đúng mật khẩu cũ
+        // (Nếu Quản lý đổi cho người khác thì có thể bỏ qua bước này tùy nghiệp vụ)
+        if (!PermissionHelper.isQuanLy() || (mkCu != null && !mkCu.isEmpty())) {
+            if (!PasswordEncoder.matches(mkCu, nv.getMatkhau())) {
+                throw new Exception("Mật khẩu cũ sai!");
+            }
+        }
+
+        // Mã hóa mật khẩu mới và cập nhật
+        nv.setMatkhau(PasswordEncoder.encode(mkMoi));
+
+        // Gọi DAO update (lấy người thực hiện từ Session)
+        return nhanVienDAO.update(nv, SessionManager.getCurrentNhanVien());
     }
 
-    public List<NhanVien> getAllDangLamViec() throws Exception {
-        // Chỉ Quản lý mới được xem danh sách nhân viên
+    // ================== 7.2 QUẢN LÝ NHÂN VIÊN ==================
+
+    public List<NhanVien> getAllNhanVien() throws Exception {
+        // Chỉ Quản lý mới xem được danh sách
         PermissionHelper.requireQuanLy();
         return nhanVienDAO.getAllDangLamViec();
     }
 
-    public List<NhanVien> getAllDaNghiViec() throws Exception {
+    public NhanVien getNhanVienById(String maNV) throws Exception {
         PermissionHelper.requireQuanLy();
-        return nhanVienDAO.getAllDaNghiViec();
+        return nhanVienDAO.getById(maNV);
     }
 
     public boolean themNhanVien(NhanVien nv) throws Exception {
-        // 1. Kiểm tra quyền (Helper tự throw Exception nếu không phải QUANLY)
+        // Chỉ Quản lý mới được thêm
         PermissionHelper.requireQuanLy();
 
-        // 2. Lấy người thực hiện từ Session (đảm bảo không null vì đã qua requireQuanLy)
-        NhanVien nguoiThucHien = SessionManager.getCurrentNhanVien();
-
-        // 3. Logic nghiệp vụ bổ sung (nếu DAO chưa có)
+        // Kiểm tra trùng tên đăng nhập
         if (nhanVienDAO.isTenDangNhapExists(nv.getTendangnhap())) {
             throw new Exception("Tên đăng nhập đã tồn tại!");
         }
 
+        // Mã hóa mật khẩu
+        if (nv.getMatkhau() != null) {
+            nv.setMatkhau(PasswordEncoder.encode(nv.getMatkhau()));
+        }
+
         try {
-            boolean result = nhanVienDAO.insert(nv, nguoiThucHien);
+            // Gọi DAO thêm mới (truyền người thực hiện để DAO check lần cuối)
+            boolean result = nhanVienDAO.insert(nv, SessionManager.getCurrentNhanVien());
             if (result) {
                 PermissionHelper.logAction("Thêm nhân viên", nv.getManv());
             }
@@ -73,16 +115,13 @@ public class NhanVienBUS {
     }
 
     public boolean suaNhanVien(NhanVien nv) throws Exception {
-        // 1. Kiểm tra xem người dùng hiện tại có quyền sửa nhân viên này không
-        // (Helper tự check: QUANLY sửa all, NV chỉ sửa chính mình)
+        // Kiểm tra quyền (Quản lý sửa tất cả, NV chỉ sửa mình)
         PermissionHelper.canEditNhanVien(nv.getManv());
 
-        NhanVien nguoiThucHien = SessionManager.getCurrentNhanVien();
-
         try {
-            boolean result = nhanVienDAO.update(nv, nguoiThucHien);
+            boolean result = nhanVienDAO.update(nv, SessionManager.getCurrentNhanVien());
             if (result) {
-                // Nếu tự sửa thông tin chính mình, cần refresh lại session
+                // Nếu tự sửa mình thì cập nhật lại Session
                 SessionManager.refreshCurrentNhanVien(nv);
                 PermissionHelper.logAction("Sửa nhân viên", nv.getManv());
             }
@@ -92,35 +131,31 @@ public class NhanVienBUS {
         }
     }
 
-    public boolean xoaNhanVien(String maNV) throws Exception {
-        // 1. Kiểm tra quyền xóa (Chỉ QUANLY và không được xóa chính mình)
-        PermissionHelper.canDeleteNhanVien(maNV);
+    // ================== 7.3 XÓA NHÂN VIÊN (Logic Đặc Biệt) ==================
 
-        NhanVien nguoiThucHien = SessionManager.getCurrentNhanVien();
+    public boolean xoaNhanVien(String maNV) throws Exception {
+        // Chỉ Quản lý mới được xóa
+        PermissionHelper.requireQuanLy();
 
         try {
-            // Trước khi xóa, nên kiểm tra cảnh báo nghiệp vụ
-            String warning = nhanVienDAO.getDeleteWarning(maNV, nguoiThucHien);
-            if (warning != null && warning.contains("Không thể xóa")) {
-                throw new Exception(warning);
-            }
+            // Gọi DAO xóa
+            // (DAO đã có logic chặn xóa nếu là Quản lý duy nhất)
+            boolean result = nhanVienDAO.delete(maNV, SessionManager.getCurrentNhanVien());
 
-            boolean result = nhanVienDAO.delete(maNV, nguoiThucHien);
             if (result) {
                 PermissionHelper.logAction("Xóa nhân viên", maNV);
             }
             return result;
         } catch (RuntimeException e) {
+            // Bắt lỗi từ DAO (VD: "Không thể xóa quản lý duy nhất") ném ra ngoài
             throw new Exception(e.getMessage());
         }
     }
 
     public boolean khoiPhucNhanVien(String maNV) throws Exception {
         PermissionHelper.requireQuanLy();
-        NhanVien nguoiThucHien = SessionManager.getCurrentNhanVien();
-
         try {
-            boolean result = nhanVienDAO.restore(maNV, nguoiThucHien);
+            boolean result = nhanVienDAO.restore(maNV, SessionManager.getCurrentNhanVien());
             if (result) {
                 PermissionHelper.logAction("Khôi phục nhân viên", maNV);
             }
@@ -130,14 +165,8 @@ public class NhanVienBUS {
         }
     }
 
-    public List<NhanVien> timKiem(String keyword) throws Exception {
+    public List<NhanVien> timKiemNhanVien(String keyword) throws Exception {
         PermissionHelper.requireQuanLy();
         return nhanVienDAO.search(keyword);
-    }
-
-    // Hỗ trợ GUI lấy cảnh báo trước khi hiện Dialog confirm
-    public String getCanhBaoXoa(String maNV) throws Exception {
-        PermissionHelper.requireQuanLy();
-        return nhanVienDAO.getDeleteWarning(maNV, SessionManager.getCurrentNhanVien());
     }
 }
