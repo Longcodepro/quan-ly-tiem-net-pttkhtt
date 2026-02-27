@@ -7,8 +7,8 @@ import java.util.List;
 import java.time.LocalDateTime;
 
 /* CÁC METHOD.
-   1. List<SuDungDichVu> getByPhien(String maPhien, Connection conn1): lấy sử dụng dịch vụ bằng mã phiên.
-   2. boolean insert(SuDungDichVu sddv, Connection conn1): thêm một dòng sử dụng dịch vụ.
+   1. List<SuDungDichVu> getByPhien(String maPhien): lấy sử dụng dịch vụ bằng mã phiên.
+   2. boolean insert(SuDungDichVu sddv): thêm một dòng sử dụng dịch vụ.
    2.1 sinh mã tự động.
    3. boolean delete(String maSD): xóa dịch vụ sử dụng.
    4. List<SuDungDichVu> getALl(): lất tất cả các dòng dữ liệu.

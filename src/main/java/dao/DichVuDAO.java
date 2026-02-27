@@ -7,11 +7,11 @@ import java.util.List;
 
 /* ========= CÁC METHOD ===========
     1. List<DichVu> getAll(): lấy toàn bộ dịch vụ.
-    2. boolean insert(DichVu dv, Connection conn1): thêm một dịch vụ.
-    2.1. String generateNextMaDV(Connection conn1): sinh mã dịch vụ tự động.
-    3. boolean update(DichVu dv, Connection conn1): cập nhập thông tin của một dịch vụ.
-    4. boolean delete(String maDichVu, Connection conn1): chuyển sang trạng thái "NGUNGBAN".
-    5. boolean cancelDelete(DichVu dv, Connection conn1): hủy bỏ trạng thái "NGUNGBAN" về "CONHANG" || "HETHANG"
+    2. boolean insert(DichVu dv): thêm một dịch vụ.
+    2.1. String generateNextMaDV(): sinh mã dịch vụ tự động.
+    3. boolean update(DichVu dv): cập nhập thông tin của một dịch vụ.
+    4. boolean delete(String maDichVu): chuyển sang trạng thái "NGUNGBAN".
+    5. boolean cancelDelete(DichVu dv): hủy bỏ trạng thái "NGUNGBAN" về "CONHANG" || "HETHANG"
     6. boolean updateSoLuongTon(String maDichVu, int soLuongCanTangGiam, Connection conn1): tăng giảm số lượng khi nhập hàng
 , mua hàng, hoàn hàng.
     7. int getSoLuongTon(String maDV): lấy số lượng tồn của dịch vụ đó.

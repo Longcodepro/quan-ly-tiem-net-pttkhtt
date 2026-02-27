@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 
 /* CÁC METHOD.
     1. List<GoiDichVuKhachHang> getByKhachHang(String maKH): lấy tất cả các dịch vụ bằng mã khách hàng.
-    2. boolean insert(GoiDichVuKhachHang newGDVKH, Connection conn1): thêm một gói dịch vụ khách hàng.
-    2.1 String generateNextMaGoiKH(Connection conn1): tăng mã tự động.
+    2. boolean insert(GoiDichVuKhachHang newGDVKH): thêm một gói dịch vụ khách hàng.
+    2.1 String generateNextMaGoiKH(): tăng mã tự động.
     3. boolean update(GoiDichVuKhachHang updateGDVKH): chỉnh sửa thông tin gói dịch vụ khách hàng.
     4. boolean getConHieuLuc(String maGoiKH): kiểm tra gói còn hiệu lực không.
     5. GoiDichVuKhachHang getByID(String maGKH): lấy gói dịch vụ bằng mã.
