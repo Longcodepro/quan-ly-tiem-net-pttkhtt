@@ -131,7 +131,7 @@ public class SuDungDichVuBUS{
         try{
             ConnectionManager.beginTransaction();
 
-            result = this.sddvDAO.geyByPhien(maPhien);
+            result = this.sddvDAO.getByPhien(maPhien);
 
             ConnectionManager.commit();
         }catch(Exception e){

@@ -22,7 +22,7 @@ public class SuDungDichVuDAO{
     ResultSet rs = null;
 
     // LẤY SỬ DỤNG DỊCH VỤ BẰNG MÃ PHIÊN
-    public List<SuDungDichVu> geyByPhien (String maPhien) throws Exception{
+    public List<SuDungDichVu> getByPhien (String maPhien) throws Exception{
         Connection conn1 = ConnectionManager.getConnection();
         String sql = "SELECT * FROM sudungdichvu WHERE MaPhien = ?";
         List<SuDungDichVu> listResult = new ArrayList<>();
