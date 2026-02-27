@@ -1,4 +1,5 @@
 package test.dao;
+import dao.GoiDichVuDAO;
 import entity.GoiDichVu;
 
 import java.util.ArrayList;

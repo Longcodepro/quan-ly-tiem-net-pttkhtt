@@ -2,9 +2,16 @@ package test.bus;
 
 import entity.KhachHang;
 import entity.NhanVien;
+import entity.GoiDichVu;
+import dao.GoiDichVuDAO;
+import dao.KhachHangDAO;
 import dao.NhanVienDAO;
+import bus.GoiDichVuBUS;
 
 import untils.SessionManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class TestGoIDichVuBUS {

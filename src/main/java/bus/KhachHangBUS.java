@@ -1,5 +1,6 @@
 package bus;
 
+import dao.KhachHangDAO;
 import entity.KhachHang;
 import untils.PermissionHelper;
 import untils.SessionManager;

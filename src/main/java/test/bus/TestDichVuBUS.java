@@ -3,7 +3,10 @@ package test.bus;
 import entity.DichVu;
 import entity.NhanVien;
 import entity.KhachHang;
+import dao.DichVuDAO;
 import dao.NhanVienDAO;
+import dao.KhachHangDAO;
+import bus.DichVuBUS;
 import untils.SessionManager;
 
 import java.util.ArrayList;
