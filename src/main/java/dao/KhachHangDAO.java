@@ -422,7 +422,7 @@ public class KhachHangDAO {
         return hasSession;
     }
     //Tìm khách hàng theo Id
-    private KhachHang getById(String MaKH){
+    public KhachHang getById(String MaKH){
         KhachHang kh = null;
         String sql = "SELECT * FROM khachhang WHERE MaKH = ?";
 
@@ -447,6 +447,48 @@ public class KhachHangDAO {
 
         }
         return kh;
+    }
+
+
+
+    //update số dư sử dụng cho đăng nhập
+
+    public boolean updateSoDu (String makh ,double sodu){
+
+        KhachHang existing = getById(makh);
+
+        //kiểm tra khách hàng tồn tại
+        if(existing == null){
+            throw new RuntimeException("Lỗi khách hàng không tồn tại !");
+        }
+
+        //khách hàng đã bị xóa trước đó
+        if(existing.isNgung()){
+            throw new RuntimeException("Khách hàng đã bị xóa !");
+        }
+
+        //kiểm tra Valid
+        validateKhachHang(existing,false);
+
+
+        String sql = "UPDATE khachhang SET SoDu = ? WHERE MaKH = ?";
+
+        try{
+
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+           pstmt.setDouble(1,sodu);
+           pstmt.setString(2,makh);
+
+            pstmt.executeUpdate();
+            pstmt.close();
+
+        }catch (SQLException e){
+            throw new RuntimeException("Lỗi update KhachHang : " + e.getMessage());
+        }
+
+        return true;
     }
 
     //Chuyển từ ResultSet -> KhachHang
@@ -489,5 +531,18 @@ public class KhachHangDAO {
         }
 
         return false;
+    }
+
+    // update lại số dư của khách hàng (dùng trong hàm insert của GoiDichVuKhachHangBUS)
+    public boolean updateSoDuKhiMuaGoi(KhachHang kh, Connection conn1){
+        String sql = "UPDATE khachhang SET SoDu = ? WHERE MaKH = ?";
+        try (PreparedStatement ps = conn1.prepareStatement(sql)) {
+            ps.setDouble(1, kh.getSodu());
+            ps.setString(2, kh.getMakh());
+            return ps.executeUpdate() > 0;
+        }catch(Exception e){
+            System.err.println("Lỗi updateSoDuKhiMuaGoi - KhachHangDAO: " + e.getMessage());
+            return false;
+        }
     }
 }
