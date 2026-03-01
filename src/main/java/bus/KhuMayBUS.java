@@ -192,6 +192,8 @@ public class KhuMayBUS {
      * @throws Exception nếu không có quyền hoặc vi phạm nghiệp vụ
      */
     public boolean xoaKhuMay(String maKhu) throws Exception {
+        // check login
+        PermissionHelper.requireLogin();
         // 1. Kiểm tra phân quyền QUANLY
         PermissionHelper.requireQuanLy();
 
@@ -238,6 +240,8 @@ public class KhuMayBUS {
      * @throws Exception nếu không có quyền hoặc khu không tồn tại
      */
     public int demSoMayTrongKhu(String maKhu) throws Exception {
+        // check login
+        PermissionHelper.requireLogin();
         // 1. Kiểm tra phân quyền (QUANLY hoặc NHANVIEN)
         PermissionHelper.requireNhanVien();
 
