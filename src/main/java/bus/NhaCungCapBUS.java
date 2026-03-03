@@ -3,6 +3,7 @@ package bus;
 import dao.NhaCungCapDAO;
 import entity.NhaCungCap;
 import entity.NhanVien;
+import untils.SessionManager;
 
 import java.util.List;
 
@@ -10,10 +11,14 @@ public class NhaCungCapBUS {
 
     private final NhaCungCapDAO dao = new NhaCungCapDAO();
 
-    private void requireQuanLy() throws Exception {
-        NhanVien current = SessionManager.getCurrentUser();
-        if (current == null) throw new Exception("Chưa đăng nhập");
-        if (!"QUANLY".equalsIgnoreCase(current.getChucvu())) throw new Exception("Không có quyền thực hiện");
+    private NhanVien requireQuanLy() throws Exception {
+        if (!SessionManager.isLoggedIn()) throw new Exception("Chưa đăng nhập");
+
+        NhanVien current = SessionManager.getCurrentNhanVien();
+        if (current == null) throw new Exception("Tài khoản không có quyền (không phải nhân viên)");
+
+        if (!SessionManager.hasAdminPermission()) throw new Exception("Không có quyền thực hiện");
+        return current;
     }
 
     public List<NhaCungCap> getAllNhaCungCap() throws Exception {
@@ -38,7 +43,6 @@ public class NhaCungCapBUS {
 
     public boolean xoaNhaCungCap(String maNCC) throws Exception {
         requireQuanLy();
-        // DAO đã check “còn phiếu CHODUYET” và throw IllegalStateException đúng nghiệp vụ
         return dao.softDelete(maNCC);
     }
 }

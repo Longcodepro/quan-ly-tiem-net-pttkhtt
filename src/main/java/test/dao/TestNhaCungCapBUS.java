@@ -1,10 +1,10 @@
 package test.dao;
 
 import bus.NhaCungCapBUS;
-import bus.SessionManager;
 import dao.DBConnection;
 import entity.NhaCungCap;
 import entity.NhanVien;
+import untils.SessionManager; // ✅ FIX: import đúng
 
 import java.util.List;
 
@@ -58,7 +58,6 @@ public class TestNhaCungCapBUS {
                 System.out.println("SoftDelete = " + deleted);
                 System.out.println("✅ OK nếu NCC không có phiếu nhập CHODUYET");
             } catch (Exception e) {
-                // đúng nghiệp vụ: còn phiếu CHODUYET -> throw
                 System.out.println("❌ SoftDelete FAIL (đúng nghiệp vụ nếu còn phiếu CHODUYET): " + e.getMessage());
             }
 
@@ -72,4 +71,3 @@ public class TestNhaCungCapBUS {
         }
     }
 }
-

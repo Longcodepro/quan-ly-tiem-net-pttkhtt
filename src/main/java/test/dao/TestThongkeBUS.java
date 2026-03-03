@@ -1,9 +1,9 @@
 package test.dao;
 
-import bus.SessionManager;
 import bus.ThongKeBUS;
 import dao.DBConnection;
 import entity.NhanVien;
+import untils.SessionManager; // ✅ FIX: import đúng
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,13 +32,9 @@ public class TestThongkeBUS {
             LocalDate den = LocalDate.now();
             LocalDate tu = den.minusDays(30);
 
-            // =========================================================
-            // 1) QUANLY: được phép chạy tất cả
-            // =========================================================
             System.out.println("=== CASE 1: Login QUANLY -> chạy full chức năng ===");
             loginAs("NV_TEST_QUANLY", "QUANLY");
 
-            // 20.2 thongKeDoanhThu
             try {
                 Map<String, Object> doanhThu = bus.thongKeDoanhThu(tu, den);
                 printMap("thongKeDoanhThu(" + tu + " -> " + den + ")", doanhThu);
@@ -47,7 +43,6 @@ public class TestThongkeBUS {
                 System.out.println(" thongKeDoanhThu FAIL: " + e.getMessage());
             }
 
-            // thongKeDoanhThuTheoThang
             try {
                 Map<String, Object> theoThang = bus.thongKeDoanhThuTheoThang(den.getMonthValue(), den.getYear());
                 printMap("thongKeDoanhThuTheoThang(" + den.getMonthValue() + "/" + den.getYear() + ")", theoThang);
@@ -56,7 +51,6 @@ public class TestThongkeBUS {
                 System.out.println(" thongKeDoanhThuTheoThang FAIL: " + e.getMessage());
             }
 
-            // 20.3 thongKeDichVuBanChay
             try {
                 List<Map<String, Object>> top = bus.thongKeDichVuBanChay(tu, den, 5);
                 System.out.println("----- thongKeDichVuBanChay top 5 -----");
@@ -72,7 +66,6 @@ public class TestThongkeBUS {
                 System.out.println(" thongKeDichVuBanChay FAIL: " + e.getMessage());
             }
 
-            // 20.4 thongKeTongQuan (QUANLY/NHANVIEN đều xem được)
             try {
                 Map<String, Object> tq = bus.thongKeTongQuan();
                 printMap("thongKeTongQuan()", tq);
@@ -81,24 +74,17 @@ public class TestThongkeBUS {
                 System.out.println("thongKeTongQuan FAIL: " + e.getMessage());
             }
 
-            // =========================================================
-            // 2) Validate ngày sai: tu > den => phải throw
-            // =========================================================
             System.out.println("\n=== CASE 2: Validate ngày sai (tu > den) -> phải FAIL đúng nghiệp vụ ===");
             try {
-                bus.thongKeDoanhThu(den, tu); // đảo ngược
+                bus.thongKeDoanhThu(den, tu);
                 System.out.println("FAIL: đáng lẽ phải throw do tuNgay > denNgay");
             } catch (Exception e) {
                 System.out.println("OK: throw đúng nghiệp vụ: " + e.getMessage());
             }
 
-            // =========================================================
-            // 3) NHANVIEN: chỉ được thongKeTongQuan, còn lại phải bị chặn
-            // =========================================================
             System.out.println("\n=== CASE 3: Login NHANVIEN -> chỉ xem thongKeTongQuan ===");
             loginAs("NV_TEST_NHANVIEN", "NHANVIEN");
 
-            // thongKeTongQuan: OK
             try {
                 Map<String, Object> tq2 = bus.thongKeTongQuan();
                 printMap("thongKeTongQuan() - NHANVIEN", tq2);
@@ -107,7 +93,6 @@ public class TestThongkeBUS {
                 System.out.println(" thongKeTongQuan (NHANVIEN) FAIL: " + e.getMessage());
             }
 
-            // thongKeDoanhThu: phải FAIL (chỉ QUANLY)
             try {
                 bus.thongKeDoanhThu(tu, den);
                 System.out.println(" FAIL: NHANVIEN không được gọi thongKeDoanhThu");
@@ -115,7 +100,6 @@ public class TestThongkeBUS {
                 System.out.println(" OK: NHANVIEN bị chặn đúng nghiệp vụ: " + e.getMessage());
             }
 
-            // thongKeDichVuBanChay: phải FAIL (chỉ QUANLY)
             try {
                 bus.thongKeDichVuBanChay(tu, den, 5);
                 System.out.println("FAIL: NHANVIEN không được gọi thongKeDichVuBanChay");
