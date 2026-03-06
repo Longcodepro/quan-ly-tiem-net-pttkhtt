@@ -2,7 +2,7 @@ package gui.controller;
 
 import entity.NhanVien;
 import entity.KhachHang;
-import untils.SessionManager;
+import utils.SessionManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
