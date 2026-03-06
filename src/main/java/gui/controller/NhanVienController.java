@@ -2,21 +2,12 @@ package gui.controller;
 
 import bus.NhanVienBUS;
 import entity.NhanVien;
-import gui.dialog.ThemNhanVienDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import utils.ThongBaoDialogHelper;
 
 import java.net.URL;
 import java.util.List;
@@ -24,155 +15,161 @@ import java.util.ResourceBundle;
 
 public class NhanVienController implements Initializable {
 
-    @FXML private TableView<NhanVien> tableView;
-    @FXML private TableColumn<NhanVien, String> colMa;
-    @FXML private TableColumn<NhanVien, String> colHo;
-    @FXML private TableColumn<NhanVien, String> colTen;
-    @FXML private TableColumn<NhanVien, String> colChucVu;
-    @FXML private TableColumn<NhanVien, String> colTDN;
-    @FXML private TableColumn<NhanVien, String> colTrangThai;
-
     @FXML private TextField txtSearch;
-    @FXML private ComboBox<String> cboChucVu;
-    @FXML private ComboBox<String> cboTrangThai;
-    @FXML private Label lblSubtitle;
-    @FXML private Label lblTotal;
+    @FXML private ComboBox<String> cmbChucVu;
     @FXML private Button btnSua;
     @FXML private Button btnXoa;
 
-    private final NhanVienBUS nhanVienBUS = new NhanVienBUS();
-    private ObservableList<NhanVien> dataList = FXCollections.observableArrayList();
-    private FilteredList<NhanVien> filteredList;
-    private NhanVien selectedItem;
+    @FXML private TableView<NhanVien> tableNhanVien;
+    @FXML private TableColumn<NhanVien, String> colMaNV;
+    @FXML private TableColumn<NhanVien, String> colHoTen;
+    @FXML private TableColumn<NhanVien, String> colChucVu;
+    @FXML private TableColumn<NhanVien, String> colTrangThai;
+
+    @FXML private Label lblFormTitle;
+    @FXML private TextField txtMaNV;
+    @FXML private TextField txtHoTen;
+    @FXML private TextField txtUsername;
+    @FXML private PasswordField txtPassword;
+    @FXML private ComboBox<String> cmbChucVuForm;
+
+    private NhanVienBUS nhanVienBUS = new NhanVienBUS();
+    private ObservableList<NhanVien> listNhanVien = FXCollections.observableArrayList();
+    private boolean isInsertMode = true;
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        setupTableColumns();
-        setupTableSelection();
-        if (cboChucVu != null) {
-            cboChucVu.getItems().setAll("Tất cả", "QUANLY", "NHANVIEN", "THUNGAN");
-            cboChucVu.setValue("Tất cả");
-            cboChucVu.setOnAction(e -> applyFilter());
-        }
-        if (cboTrangThai != null) {
-            cboTrangThai.getItems().setAll("Tất cả", "DANGLAMVIEC", "NGHIVIEC");
-            cboTrangThai.setValue("Tất cả");
-            cboTrangThai.setOnAction(e -> applyFilter());
-        }
+    public void initialize(URL url, ResourceBundle rb) {
+        setupTable();
+        cmbChucVu.getItems().addAll("TATC", "QUANLY", "NHANVIEN", "THUNGAN");
+        cmbChucVu.getSelectionModel().selectFirst();
+        cmbChucVuForm.getItems().addAll("QUANLY", "NHANVIEN", "THUNGAN");
+
         loadData();
     }
 
-    private void setupTableColumns() {
-        if (colMa       != null) colMa.setCellValueFactory(new PropertyValueFactory<>("manv"));
-        if (colHo       != null) colHo.setCellValueFactory(new PropertyValueFactory<>("ho"));
-        if (colTen      != null) colTen.setCellValueFactory(new PropertyValueFactory<>("ten"));
-        if (colChucVu   != null) colChucVu.setCellValueFactory(new PropertyValueFactory<>("chucvu"));
-        if (colTDN      != null) colTDN.setCellValueFactory(new PropertyValueFactory<>("tendangnhap"));
-        if (colTrangThai!= null) colTrangThai.setCellValueFactory(new PropertyValueFactory<>("trangthai"));
+    private void setupTable() {
+        colMaNV.setCellValueFactory(new PropertyValueFactory<>("manv"));
+        // Vì Entity tách Họ và Tên, bạn có thể tự implement lấy fullName nếu cần
+        colHoTen.setCellValueFactory(new PropertyValueFactory<>("ten"));
+        colChucVu.setCellValueFactory(new PropertyValueFactory<>("chucvu"));
+        colTrangThai.setCellValueFactory(new PropertyValueFactory<>("trangthai"));
     }
 
-    private void setupTableSelection() {
-        tableView.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
-            selectedItem = n;
-            boolean has = n != null;
-            if (btnSua != null) btnSua.setDisable(!has);
-            if (btnXoa != null) btnXoa.setDisable(!has);
-        });
-        if (btnSua != null) btnSua.setDisable(true);
-        if (btnXoa != null) btnXoa.setDisable(true);
-    }
-
-    public void loadData() {
+    private void loadData() {
         try {
-            // Lấy tất cả: đang làm việc + đã nghỉ
-            List<NhanVien> active  = nhanVienBUS.getAllNhanVienDangLamViec();
-            List<NhanVien> nghiviec = nhanVienBUS.getAllNhanVienDaNghiViec();
-            dataList.clear();
-            dataList.addAll(active);
-            dataList.addAll(nghiviec);
-            filteredList = new FilteredList<>(dataList, p -> true);
-            tableView.setItems(filteredList);
-            updateSubtitle();
+            List<NhanVien> list = nhanVienBUS.getAllNhanVienDangLamViec();
+            listNhanVien.setAll(list);
+            tableNhanVien.setItems(listNhanVien);
         } catch (Exception e) {
-            ThongBaoDialogHelper.showError(tableView.getScene(), "Lỗi tải dữ liệu: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Lỗi tải dữ liệu", e.getMessage());
         }
     }
 
     @FXML
-    public void handleSearch() { applyFilter(); }
-
-    private void applyFilter() {
-        String keyword = txtSearch    != null ? txtSearch.getText().toLowerCase().trim() : "";
-        String cv      = cboChucVu   != null ? cboChucVu.getValue() : "Tất cả";
-        String tt      = cboTrangThai!= null ? cboTrangThai.getValue() : "Tất cả";
-        if (filteredList == null) return;
-        filteredList.setPredicate(item -> {
-            boolean matchKw = keyword.isEmpty()
-                || (item.getManv()        != null && item.getManv().toLowerCase().contains(keyword))
-                || (item.getHo()          != null && item.getHo().toLowerCase().contains(keyword))
-                || (item.getTen()         != null && item.getTen().toLowerCase().contains(keyword))
-                || (item.getTendangnhap() != null && item.getTendangnhap().toLowerCase().contains(keyword));
-            boolean matchCV = cv == null || "Tất cả".equals(cv) || cv.equals(item.getChucvu());
-            boolean matchTT = tt == null || "Tất cả".equals(tt) || tt.equals(item.getTrangthai());
-            return matchKw && matchCV && matchTT;
-        });
-        updateSubtitle();
-    }
-
-    @FXML
-    public void handleThem() { openDialog(null); }
-
-    @FXML
-    public void handleSua() {
-        if (selectedItem == null) return;
-        openDialog(selectedItem);
-    }
-
-    @FXML
-    public void handleXoa() {
-        if (selectedItem == null) return;
-        Stage owner = (Stage) tableView.getScene().getWindow();
-        String tenNV = (selectedItem.getHo() != null ? selectedItem.getHo() : "")
-                     + " " + (selectedItem.getTen() != null ? selectedItem.getTen() : "");
-        if (!gui.dialog.XacNhanDialog.showDelete(owner, tenNV.trim())) return;
+    private void handleSearch() {
         try {
-            nhanVienBUS.xoaNhanVien(selectedItem.getManv());
-            ThongBaoDialogHelper.showSuccess(tableView.getScene(), "Đã xóa nhân viên!");
+            String keyword = txtSearch.getText();
+            List<NhanVien> list = nhanVienBUS.timKiemNhanVien(keyword);
+            listNhanVien.setAll(list);
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi tìm kiếm", e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleRowSelect() {
+        NhanVien selected = tableNhanVien.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            isInsertMode = false;
+            lblFormTitle.setText("CẬP NHẬT NHÂN VIÊN");
+            txtMaNV.setText(selected.getManv());
+            txtHoTen.setText(selected.getHo() + " " + selected.getTen());
+            txtUsername.setText(selected.getTendangnhap());
+            txtPassword.setDisable(true); // Sửa thì không cho nhập pass ở đây
+            cmbChucVuForm.setValue(selected.getChucvu());
+        }
+    }
+
+    @FXML
+    private void handleThem() {
+        isInsertMode = true;
+        lblFormTitle.setText("THÊM NHÂN VIÊN");
+        handleCancel(); // Clear form
+        txtPassword.setDisable(false);
+    }
+
+    @FXML
+    private void handleSua() {
+        // Logic khi click nút sửa trên thanh công cụ (Focus vào bảng bên form)
+        if (tableNhanVien.getSelectionModel().getSelectedItem() == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn nhân viên cần sửa!");
+        }
+    }
+
+    @FXML
+    private void handleXoa() {
+        NhanVien selected = tableNhanVien.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn nhân viên cần xóa!");
+            return;
+        }
+
+        try {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Bạn có chắc muốn xóa nhân viên này?", ButtonType.YES, ButtonType.NO);
+            if (confirm.showAndWait().get() == ButtonType.YES) {
+                if (nhanVienBUS.xoaNhanVien(selected.getManv())) {
+                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã khóa nhân viên thành công!");
+                    loadData();
+                    handleCancel();
+                }
+            }
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi xóa", e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleSave() {
+        try {
+            NhanVien nv = new NhanVien();
+            // Xử lý tách họ và tên tạm thời (giả sử tên là từ cuối cùng)
+            String[] parts = txtHoTen.getText().trim().split(" ");
+            nv.setTen(parts[parts.length - 1]);
+            nv.setHo(txtHoTen.getText().replace(nv.getTen(), "").trim());
+
+            nv.setChucvu(cmbChucVuForm.getValue());
+            nv.setTendangnhap(txtUsername.getText());
+
+            if (isInsertMode) {
+                nv.setMatkhau(txtPassword.getText());
+                nhanVienBUS.themNhanVien(nv);
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thêm nhân viên thành công!");
+            } else {
+                nv.setManv(txtMaNV.getText());
+                nhanVienBUS.suaNhanVien(nv);
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Cập nhật nhân viên thành công!");
+            }
             loadData();
+            handleCancel();
         } catch (Exception e) {
-            ThongBaoDialogHelper.showError(tableView.getScene(), "Lỗi xóa: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Lỗi lưu dữ liệu", e.getMessage());
         }
     }
 
     @FXML
-    public void handleLamMoi() {
-        if (txtSearch    != null) txtSearch.clear();
-        if (cboChucVu   != null) cboChucVu.setValue("Tất cả");
-        if (cboTrangThai != null) cboTrangThai.setValue("Tất cả");
-        loadData();
+    private void handleCancel() {
+        txtMaNV.clear();
+        txtHoTen.clear();
+        txtUsername.clear();
+        txtPassword.clear();
+        cmbChucVuForm.getSelectionModel().clearSelection();
     }
 
-    private void openDialog(NhanVien entity) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialogs/themNhanVien.fxml"));
-            Parent root = loader.load();
-            ThemNhanVienDialog ctrl = loader.getController();
-            ctrl.setEntity(entity);
-            ctrl.setOnSaveCallback(this::loadData);
-
-            Stage stage = new Stage(StageStyle.UNDECORATED);
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initOwner(tableView.getScene().getWindow());
-            stage.setScene(new Scene(root));
-            stage.showAndWait();
-        } catch (Exception e) {
-            ThongBaoDialogHelper.showError(tableView.getScene(), "Không thể mở dialog: " + e.getMessage());
-        }
-    }
-
-    private void updateSubtitle() {
-        int total = filteredList != null ? filteredList.size() : 0;
-        if (lblSubtitle != null) lblSubtitle.setText("Tổng: " + total + " bản ghi");
-        if (lblTotal    != null) lblTotal.setText("Tổng: " + total + " bản ghi");
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
