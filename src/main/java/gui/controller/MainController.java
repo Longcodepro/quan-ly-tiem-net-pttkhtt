@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
@@ -20,11 +21,12 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
-    @FXML private Label lblTenNguoiDung; // Đổi từ lblUserName
-    @FXML private Label lblChucVu;       // Đổi từ lblUserRole
+    // Đã đổi chuẩn Tiếng Việt
+    @FXML private Label lblTenNguoiDung;
+    @FXML private Label lblChucVu;
     @FXML private Label lblPageTitle;
     @FXML private Label lblCurrentTime;
-    @FXML private StackPane contentArea; // Đổi từ contentPane
+    @FXML private StackPane contentArea;
 
     @FXML private Button btnSodoMay, btnMayTinh, btnKhuMay, btnPhienSuDung, btnDichVu;
     @FXML private Button btnGoiDichVu, btnKhuyenMai, btnKhachHang, btnNapTien, btnNhanVien;
@@ -62,7 +64,6 @@ public class MainController implements Initializable {
             if(btnNhapHang != null) { btnNhapHang.setVisible(false); btnNhapHang.setManaged(false); }
             if(btnKhuyenMai != null) { btnKhuyenMai.setVisible(false); btnKhuyenMai.setManaged(false); }
         }
-
         if (SessionManager.isKhachHang()) {
             if(btnMayTinh != null) { btnMayTinh.setVisible(false); btnMayTinh.setManaged(false); }
             if(btnKhuMay != null) { btnKhuMay.setVisible(false); btnKhuMay.setManaged(false); }
@@ -72,7 +73,8 @@ public class MainController implements Initializable {
 
     private void loadView(String fxmlPath, String title) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/view/" + fxmlPath));
+            // Sửa lại đường dẫn load FXML
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/" + fxmlPath));
             Node node = loader.load();
             contentArea.getChildren().setAll(node);
             if(lblPageTitle != null) lblPageTitle.setText(title.toUpperCase());
@@ -81,7 +83,7 @@ public class MainController implements Initializable {
         }
     }
 
-    // Load đúng tên file fxml trong docx
+    // Đã đổi tên các file đuôi .fxml chuẩn docx
     @FXML public void showSodoMay() { loadView("sodoMay.fxml", "Sơ đồ máy"); }
     @FXML public void showMayTinh() { loadView("mayTinh.fxml", "Quản lý máy tính"); }
     @FXML public void showKhuMay() { loadView("khuMay.fxml", "Quản lý khu máy"); }
@@ -102,7 +104,8 @@ public class MainController implements Initializable {
         try {
             Stage currentStage = (Stage) btnSodoMay.getScene().getWindow();
             currentStage.close();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/view/login.fxml"));
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Stage stage = new Stage();
             stage.setTitle("Đăng nhập");
             stage.setScene(new Scene(loader.load()));

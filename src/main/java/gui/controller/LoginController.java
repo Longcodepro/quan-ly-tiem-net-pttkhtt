@@ -18,20 +18,23 @@ import java.util.ResourceBundle;
 
 public class LoginController implements Initializable {
 
-    @FXML private TextField txtTenDangNhap; // Đổi từ txtUsername
-    @FXML private PasswordField pfMatKhau;  // Đổi từ txtPassword
+    // Đã đổi ID tiếng Việt
+    @FXML private TextField txtTenDangNhap;
+    @FXML private PasswordField pfMatKhau;
     @FXML private ComboBox<String> cbLoaiTaiKhoan;
     @FXML private Label lblThongBao;
     @FXML private Button btnDangNhap;
 
-    private final KhachHangBUS khachHangBUS = new KhachHangBUS();
-    private final NhanVienBUS nhanVienBUS = new NhanVienBUS();
+    private KhachHangBUS khachHangBUS = new KhachHangBUS();
+    private NhanVienBUS nhanVienBUS = new NhanVienBUS();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        cbLoaiTaiKhoan.getItems().addAll("Nhân viên", "Khách hàng");
-        cbLoaiTaiKhoan.getSelectionModel().selectFirst();
-        lblThongBao.setText("");
+        if(cbLoaiTaiKhoan != null) {
+            cbLoaiTaiKhoan.getItems().addAll("Nhân viên", "Khách hàng");
+            cbLoaiTaiKhoan.getSelectionModel().selectFirst();
+        }
+        if(lblThongBao != null) lblThongBao.setText("");
     }
 
     @FXML
@@ -43,10 +46,16 @@ public class LoginController implements Initializable {
         try {
             if ("Khách hàng".equals(role)) {
                 KhachHang kh = khachHangBUS.dangNhap(username, password);
-                if (kh != null) chuyenHuongMain("Khách hàng");
+                if (kh != null) {
+                    SessionManager.setCurrentUser(kh); // Quan trọng
+                    chuyenHuongMain("Khách hàng");
+                }
             } else {
                 NhanVien nv = nhanVienBUS.dangNhap(username, password);
-                if (nv != null) chuyenHuongMain("Nhân viên");
+                if (nv != null) {
+                    SessionManager.setCurrentUser(nv); // Quan trọng
+                    chuyenHuongMain("Nhân viên");
+                }
             }
         } catch (Exception e) {
             lblThongBao.setText(e.getMessage());
@@ -55,12 +64,13 @@ public class LoginController implements Initializable {
     }
 
     @FXML
-    private void handleDangKy() {
+    private void chuyenSangDangKy() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/view/register.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
+            Parent root = loader.load();
             Stage stage = new Stage();
             stage.setTitle("Đăng ký tài khoản");
-            stage.setScene(new Scene(loader.load()));
+            stage.setScene(new Scene(root));
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,14 +78,15 @@ public class LoginController implements Initializable {
     }
 
     private void chuyenHuongMain(String role) throws Exception {
-        Stage currentStage = (Stage) btnDangNhap.getScene().getWindow();
+        Stage currentStage = (Stage) txtTenDangNhap.getScene().getWindow();
         currentStage.close();
 
-        // Load đúng tên file main.fxml theo docx
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/view/main.fxml"));
+        // Đã sửa file name thành chuẩn docx
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+        Parent root = loader.load();
         Stage stage = new Stage();
         stage.setTitle("Hệ Thống Quản Lý Tiệm Net - " + role);
-        stage.setScene(new Scene(loader.load(), 1280, 800));
+        stage.setScene(new Scene(root, 1200, 800));
         stage.setMaximized(true);
         stage.show();
     }
