@@ -131,6 +131,14 @@ public class NhanVienController implements Initializable {
     }
 
     @FXML
+    private void handleLamMoi() {
+        if (txtSearch != null) txtSearch.clear();
+        if (cboChucVu != null) cboChucVu.getSelectionModel().selectFirst();
+        if (cboTrangThai != null) cboTrangThai.getSelectionModel().selectFirst();
+        loadData();
+    }
+
+    @FXML
     private void handleThem() {
         openDialog(null); // null tức là trạng thái Thêm mới
     }
